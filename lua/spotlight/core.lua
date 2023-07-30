@@ -48,6 +48,18 @@ function M.apply_hl(cur_win, win_id_list, opts)
         { win = win_id }
       )
 
+      -- NOTE: important for windows that load after the hihglihgts
+      -- are applied.
+
+      if cur_win == win_id then
+        vim.schedule(function()
+          vim.api.nvim_set_option_value(
+            "winhl",
+            table.concat(opts.replaced_hl.float, ","),
+            { win = win_id }
+          )
+        end)
+      end
     else
       vim.api.nvim_set_option_value(
         "winhl",
