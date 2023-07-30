@@ -1,6 +1,5 @@
 local M = {
   is_floating = false,
-  cur_win = 0,
 }
 
 local function _is_floating(win_id)
@@ -33,9 +32,8 @@ function M.on_window_enter(opts)
     M.apply_hl(cur_win, win_id_list, opts)
 
     M.is_floating = is_floating
-    M.cur_win = cur_win
   else
-    M.restore_hl(win_id_list, opts)
+    M.restore_hl()
   end
 end
 
@@ -61,6 +59,7 @@ function M.apply_hl(cur_win, win_id_list, opts)
         end)
       end
     else
+      M.options[win_id] = vim.api.nvim_get_option_value("winhl", { win = win_id })
       vim.api.nvim_set_option_value(
         "winhl",
         table.concat(opts.replaced_hl.window, ","),
@@ -70,14 +69,13 @@ function M.apply_hl(cur_win, win_id_list, opts)
   end
 end
 
-function M.restore_hl(win_id_list, opts)
-  local restored = vim.list_extend(opts.restored_hl.float, opts.restored_hl.window)
+function M.restore_hl()
   if M.is_floating then
-    for _, win_id in ipairs(win_id_list) do
-      if win_id ~= M.cur_win then
-        vim.api.nvim_set_option_value("winhl", table.concat(restored, ","), { win = win_id })
-      end
+    for win_id, winhl in pairs(M.options) do
+      M.options[win_id] = nil
+      vim.api.nvim_set_option_value("winhl", winhl, { win = win_id })
     end
+    M.is_floating = false
   end
 end
 
